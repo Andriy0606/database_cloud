@@ -1,0 +1,17 @@
+domain створюємо таблицю
+dao init імпортуємо таблицю з domain
+dao orders створюємо табл __дао
+service init імпортуємо табл з домейну і дао
+service orders створюємо табл __ сервіс
+controllers init імпортуємо сервіс
+controllers init створюємо табл –контроллер
+routes створюємо файлик з шляхами
+routes init реєструємо шляхи
+
+
+як запустити
+cmd
+venv\Scripts\activate
+python setup.py
+flask run
+відкриваєш postman
