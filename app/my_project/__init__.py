@@ -1,7 +1,9 @@
+
 from flask import Flask
 from config.config import Config
 from my_project.database import db
 from my_project.base.routes import register_routes
+
 from flasgger import Swagger
 
 def create_app():
@@ -11,9 +13,9 @@ def create_app():
     db.init_app(app)
     register_routes(app)
 
-    # ВАЖЛИВО: використовуємо Swagger 2.0 (а не openapi: 3.x)
+
     app.config['SWAGGER'] = {
-        'uiversion': 3,          # сучасний інтерфейс
+        'uiversion': 3,
         'title': 'Concert Bus API'
     }
 
@@ -24,27 +26,26 @@ def create_app():
             "version": "1.0.0",
             "description": "Документація до API курсового проєкту"
         },
-        "basePath": "/",         # корінь
-        "schemes": ["http"],     # якщо буде HTTPS — додасте "https"
-        "paths": {}              # Flasgger сам підтягне з докстрінгів
+        "basePath": "/",
+        "schemes": ["http"],
+        "paths": {}
     }
 
-    Swagger(
-        app,
-        template=swagger_template,
-        config={
-            "specs": [
-                {
-                    "endpoint": 'apispec_1',
-                    "route": '/apispec_1.json',
-                    "rule_filter": lambda rule: True,
-                    "model_filter": lambda tag: True,
-                }
-            ],
-            "static_url_path": "/flasgger_static",
-            "swagger_ui": True,
-            "specs_route": "/apidocs/"
-        },
-    )
 
+    swagger_config = {
+        "specs": [
+            {
+                "endpoint": "apispec_1",
+                "route": "/apispec_1.json",
+                "rule_filter": lambda rule: True,
+                "model_filter": lambda tag: True,
+            }
+        ],
+        "static_url_path": "/flasgger_static",
+        "swagger_ui": True,
+        "specs_route": "/apidocs/",
+        "headers": [],  
+    }
+
+    Swagger(app, template=swagger_template, config=swagger_config)
     return app
