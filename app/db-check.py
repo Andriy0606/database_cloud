@@ -9,3 +9,4 @@ with app.app_context():
     dbname = db.session.execute(text("SELECT DB_NAME()")).scalar()
     print("Connected to DB:", dbname)
 
+
