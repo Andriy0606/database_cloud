@@ -5,7 +5,7 @@ concert_list_bp = Blueprint("concert_list", __name__)
 concert_list_controller = ConcertListController()
 
 
-@concert_list_bp.route("/concert_list", methods=['GET'])
+@concert_list_bp.route("/concert_list", methods=["GET"])
 def get_concert_list():
     """
     Отримати список концертів
@@ -16,12 +16,14 @@ def get_concert_list():
       200:
         description: Список концертів
         examples:
-          application/json: [{"id": 1, "name": "Rock Fest", "location": "Kyiv"}]
+          application/json:
+            - { "id": "EVT001", "event_name": "Rock Fest" }
+            - { "id": "EVT002", "event_name": "Jazz Night" }
     """
     return concert_list_controller.get_all()
 
 
-@concert_list_bp.route("/concert_list/<int:concert_list_id>", methods=['GET'])
+@concert_list_bp.route("/concert_list/<string:concert_list_id>", methods=["GET"])
 def get_concert_by_id(concert_list_id):
     """
     Отримати концерт за ID
@@ -31,21 +33,21 @@ def get_concert_by_id(concert_list_id):
     parameters:
       - name: concert_list_id
         in: path
-        type: integer
+        type: string
         required: true
-        description: ID концерту
+        description: ID концерту (до 10 символів)
     responses:
       200:
         description: Концерт знайдено
         examples:
-          application/json: {"id": 1, "name": "Rock Fest", "location": "Kyiv"}
+          application/json: { "id": "EVT001", "event_name": "Rock Fest" }
       404:
         description: Концерт не знайдено
     """
     return concert_list_controller.get_by_id(concert_list_id)
 
 
-@concert_list_bp.route("/concert_list", methods=['POST'])
+@concert_list_bp.route("/concert_list", methods=["POST"])
 def add_concert():
     """
     Додати новий концерт
@@ -58,21 +60,30 @@ def add_concert():
         required: true
         schema:
           type: object
+          required: [event_name]      # id можна передавати, якщо у тебе він не генерується на боці сервера
           properties:
-            name:
+            id:
               type: string
-              example: "Rock Fest"
-            location:
+              maxLength: 10
+              example: "EVT003"
+              description: "Опційно: якщо PK не генерується автоматично"
+            event_name:
               type: string
-              example: "Kyiv"
+              example: "Sympho Night"
     responses:
       201:
         description: Концерт створено
+        examples:
+          application/json: { "id": "EVT003", "event_name": "Sympho Night" }
+      400:
+        description: Некоректні дані
+      409:
+        description: Назва вже існує (unique constraint)
     """
     return concert_list_controller.create()
 
 
-@concert_list_bp.route("/concert_list/<int:concert_list_id>", methods=['PATCH'])
+@concert_list_bp.route("/concert_list/<string:concert_list_id>", methods=["PATCH"])
 def update_concert(concert_list_id):
     """
     Оновити концерт за ID
@@ -82,7 +93,7 @@ def update_concert(concert_list_id):
     parameters:
       - name: concert_list_id
         in: path
-        type: integer
+        type: string
         required: true
         description: ID концерту
       - in: body
@@ -91,22 +102,21 @@ def update_concert(concert_list_id):
         schema:
           type: object
           properties:
-            name:
+            event_name:
               type: string
               example: "Updated Fest"
-            location:
-              type: string
-              example: "Lviv"
     responses:
       200:
         description: Концерт оновлено
+        examples:
+          application/json: { "id": "EVT001", "event_name": "Updated Fest" }
       404:
         description: Концерт не знайдено
     """
     return concert_list_controller.update(concert_list_id)
 
 
-@concert_list_bp.route("/concert_list/<int:concert_list_id>", methods=['DELETE'])
+@concert_list_bp.route("/concert_list/<string:concert_list_id>", methods=["DELETE"])
 def delete_concert(concert_list_id):
     """
     Видалити концерт за ID
@@ -116,12 +126,14 @@ def delete_concert(concert_list_id):
     parameters:
       - name: concert_list_id
         in: path
-        type: integer
+        type: string
         required: true
         description: ID концерту
     responses:
       200:
         description: Концерт видалено
+        examples:
+          application/json: { "message": "deleted", "id": "EVT001" }
       404:
         description: Концерт не знайдено
     """
