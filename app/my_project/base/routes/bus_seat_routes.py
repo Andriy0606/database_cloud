@@ -5,10 +5,10 @@ bus_seat_bp = Blueprint("bus_seat", __name__)
 bus_seat_controller = BusSeatController()
 
 
-@bus_seat_bp.route("/bus_seat", methods=['GET'])
+@bus_seat_bp.route("/bus_seat", methods=["GET"])
 def get_bus_seats():
     """
-    Отримати список місць в автобусах
+    Отримати всі місця (по всіх автобусах)
     ---
     tags:
       - Bus Seat
@@ -16,36 +16,40 @@ def get_bus_seats():
       200:
         description: Список місць
         examples:
-          application/json: [{"id": 1, "bus_id": 2, "seat_number": 12, "is_reserved": false}]
+          application/json:
+            - { "bus_no": 101, "seat_no": 1, "is_available": "Yes" }
+            - { "bus_no": 101, "seat_no": 2, "is_available": "No" }
     """
     return bus_seat_controller.get_all()
 
 
-@bus_seat_bp.route("/bus_seat/<int:bus_seat_id>", methods=['GET'])
-def get_bus_seat_by_id(bus_seat_id):
+@bus_seat_bp.route("/bus_seat/<int:bus_no>", methods=["GET"])
+def get_bus_seat_by_id(bus_no):
     """
-    Отримати місце за ID
+    Отримати всі місця для конкретного автобуса (PK = bus_no)
     ---
     tags:
       - Bus Seat
     parameters:
-      - name: bus_seat_id
+      - name: bus_no
         in: path
         type: integer
         required: true
-        description: ID місця
+        description: Номер автобуса (FK на bus.bus_no)
     responses:
       200:
-        description: Місце знайдено
+        description: Список місць для вказаного автобуса
         examples:
-          application/json: {"id": 1, "bus_id": 2, "seat_number": 12, "is_reserved": false}
+          application/json:
+            - { "bus_no": 101, "seat_no": 1, "is_available": "Yes" }
+            - { "bus_no": 101, "seat_no": 2, "is_available": "No" }
       404:
-        description: Місце не знайдено
+        description: Місця/автобус не знайдено
     """
-    return bus_seat_controller.get_by_id(bus_seat_id)
+    return bus_seat_controller.get_by_id(bus_no)
 
 
-@bus_seat_bp.route("/bus_seat", methods=['POST'])
+@bus_seat_bp.route("/bus_seat", methods=["POST"])
 def add_bus_seat():
     """
     Додати місце в автобусі
@@ -58,72 +62,87 @@ def add_bus_seat():
         required: true
         schema:
           type: object
+          required: [bus_no, seat_no]
           properties:
-            bus_id:
+            bus_no:
               type: integer
-              example: 2
-            seat_number:
+              description: FK на bus.bus_no (а також PK цього запису)
+              example: 101
+            seat_no:
               type: integer
-              example: 15
-            is_reserved:
-              type: boolean
-              example: false
+              description: Номер місця в автобусі
+              example: 12
+            is_available:
+              type: string
+              enum: ["Yes", "No"]
+              description: Доступність місця
+              example: "Yes"
     responses:
       201:
         description: Місце додано
+      404:
+        description: Автобуса з таким bus_no не існує
+      409:
+        description: Конфлікт унікальності/PK (bus_no вже існує)
     """
     return bus_seat_controller.create()
 
 
-@bus_seat_bp.route("/bus_seat/<int:bus_seat_id>", methods=['PATCH'])
-def update_bus_seat(bus_seat_id):
+@bus_seat_bp.route("/bus_seat/<int:bus_no>", methods=["PATCH"])
+def update_bus_seat(bus_no):
     """
-    Оновити місце
+    Оновити місця для автобуса (за PK = bus_no)
     ---
     tags:
       - Bus Seat
     parameters:
-      - name: bus_seat_id
+      - name: bus_no
         in: path
         type: integer
         required: true
+        description: Номер автобуса (PK/FK)
       - in: body
         name: body
         required: true
         schema:
           type: object
           properties:
-            seat_number:
+            seat_no:
               type: integer
+              description: Новий/оновлений номер місця (якщо логіка контролера дозволяє)
               example: 20
-            is_reserved:
-              type: boolean
-              example: true
+            is_available:
+              type: string
+              enum: ["Yes", "No"]
+              example: "No"
     responses:
       200:
-        description: Місце оновлено
+        description: Оновлено
       404:
-        description: Місце не знайдено
+        description: Не знайдено
+      409:
+        description: Конфлікт унікальності
     """
-    return bus_seat_controller.update(bus_seat_id)
+    return bus_seat_controller.update(bus_no)
 
 
-@bus_seat_bp.route("/bus_seat/<int:bus_seat_id>", methods=['DELETE'])
-def delete_bus_seat(bus_seat_id):
+@bus_seat_bp.route("/bus_seat/<int:bus_no>", methods=["DELETE"])
+def delete_bus_seat(bus_no):
     """
-    Видалити місце
+    Видалити місця за автобусом (PK = bus_no)
     ---
     tags:
       - Bus Seat
     parameters:
-      - name: bus_seat_id
+      - name: bus_no
         in: path
         type: integer
         required: true
+        description: Номер автобуса (PK/FK)
     responses:
       200:
-        description: Місце видалено
+        description: Видалено
       404:
-        description: Місце не знайдено
+        description: Не знайдено
     """
-    return bus_seat_controller.delete(bus_seat_id)
+    return bus_seat_controller.delete(bus_no)
